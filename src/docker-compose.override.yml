@@ -52,6 +52,7 @@ services:
       - WebShoppingAggClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5121
       - WebhooksApiClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5113
       - WebhooksWebClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5114
+      - CouponApiClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:49153
       - UseCustomizationData=True
       - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
       - OrchestratorType=${ORCHESTRATOR_TYPE}
@@ -100,6 +101,28 @@ services:
     ports:
       - "5101:80"
       - "9101:81"
+
+  coupon-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - AzureServiceBusEnabled=False
+      - CheckUpdateTime=30000
+      - ConnectionString=mongodb://dockercompose1823892967562433005-nosqldata-1:27017
+      - EventBusConnection=${ESHOP_AZURE_SERVICE_BUS:-rabbitmq}
+      - IdentityUrl=http://identity-api
+      - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/coupon-api
+      - Serilog__MinimumLevel__Override__coupon-api=Verbose
+      - Serilog__MinimumLevel__Override__Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ=Verbose
+      - GRPC_PORT=81
+      - PORT=80
+
+    ports:
+      - "49153:80"
+      - "49154:81"
 
   ordering-api:
     environment:

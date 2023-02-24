@@ -1,6 +1,9 @@
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
@@ -45,15 +48,17 @@ COPY "docker-compose.dcproj" "docker-compose.dcproj"
 
 COPY "NuGet.config" "NuGet.config"
 
-# RUN dotnet restore "eShopOnContainers-ServicesAndWebApps.sln"
+RUN dotnet restore "eShopOnContainers-ServicesAndWebApps.sln"
+
 COPY . .
-WORKDIR /src/Web/WebStatus
-RUN dotnet publish -c Release -o /app
+WORKDIR src/Services/Coupon/Coupon.API
+#RUN dotnet publish --no-restore -c Release -o /app
+RUN dotnet publish "Coupon.API.csproj" -c Release -o /app/publish
 
 FROM build AS publish
+#RUN dotnet publish "Coupon.API.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "WebStatus.dll"]
-
+ENTRYPOINT ["dotnet", "Coupon.API.dll"]
