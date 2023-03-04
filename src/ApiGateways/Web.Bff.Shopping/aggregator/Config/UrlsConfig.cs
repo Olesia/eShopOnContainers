@@ -31,6 +31,7 @@ public class UrlsConfig
     public string Catalog { get; set; }
 
     public string Orders { get; set; }
+    public string Coupon { get; set; }
 
     public string GrpcBasket { get; set; }
 

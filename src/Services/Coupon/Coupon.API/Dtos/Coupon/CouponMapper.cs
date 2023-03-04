@@ -2,7 +2,7 @@
 {
     using Coupon.API.Infrastructure.Models;
 
-    public class Mapper : IMapper<CouponDto, Coupon>
+    public class CouponMapper : IMapper<CouponDto, Coupon>
     {
         public CouponDto Translate(Coupon entity)
         {

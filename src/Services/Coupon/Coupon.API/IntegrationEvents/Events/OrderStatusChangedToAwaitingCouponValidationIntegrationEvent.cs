@@ -16,5 +16,13 @@ namespace Coupon.API.IntegrationEvents.Events
 
         [JsonProperty]
         public string Code { get; private set; }
+
+        public OrderStatusChangedToAwaitingCouponValidationIntegrationEvent(int orderId, string orderStatus, string buyerName, string code)
+        {
+            OrderId = orderId;
+            OrderStatus = orderStatus;
+            BuyerName = buyerName;
+            Code = code;
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.eShopOnContainers.Services.Ordering.Domain.Events;
+using Ordering.Domain.Events;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
 
@@ -16,11 +17,19 @@ public class Order
     public int? GetBuyerId => _buyerId;
     private int? _buyerId;
 
+    public bool? DiscountConfirmed { get; private set; }
     public OrderStatus OrderStatus { get; private set; }
     private int _orderStatusId;
 
     private string _description;
 
+    public string DiscountCode { get; private set; }
+
+    public decimal? Discount { get; private set; }
+
+    public int PointsEarned { get; private set; }
+    
+    public int PointsUsed { get; private set; }
 
 
     // Draft orders have this set to true. Currently we don't check anywhere the draft status of an Order, but we could do it if needed
@@ -49,13 +58,17 @@ public class Order
     }
 
     public Order(string userId, string userName, Address address, int cardTypeId, string cardNumber, string cardSecurityNumber,
-            string cardHolderName, DateTime cardExpiration, int? buyerId = null, int? paymentMethodId = null) : this()
+            string cardHolderName, DateTime cardExpiration, string discountCode, decimal? discount, int pointsEarned = 0, int pointsUsed = 0, int? buyerId = null, int? paymentMethodId = null) : this()
     {
         _buyerId = buyerId;
         _paymentMethodId = paymentMethodId;
         _orderStatusId = OrderStatus.Submitted.Id;
         _orderDate = DateTime.UtcNow;
         Address = address;
+        DiscountCode = discountCode;
+        Discount = discountCode == null ? null : discount;
+        PointsEarned = pointsEarned;
+        PointsUsed = pointsUsed;
 
         // Add the OrderStarterDomainEvent to the domain events collection 
         // to be raised/dispatched when comitting changes into the Database [ After DbContext.SaveChanges() ]
@@ -102,29 +115,80 @@ public class Order
         _buyerId = id;
     }
 
-    public void SetAwaitingValidationStatus()
+    public void SetPointsEarned(int points)
+    {
+        PointsEarned = points;
+    }
+
+
+    public void SetAwaitingStockValidationStatus()
     {
         if (_orderStatusId == OrderStatus.Submitted.Id)
         {
-            AddDomainEvent(new OrderStatusChangedToAwaitingValidationDomainEvent(Id, _orderItems));
-            _orderStatusId = OrderStatus.AwaitingValidation.Id;
+            AddDomainEvent(new OrderStatusChangedToAwaitingStockValidationDomainEvent(Id, _orderItems));
+            _orderStatusId = OrderStatus.AwaitingStockValidation.Id;
         }
     }
 
-    public void SetStockConfirmedStatus()
-    {
-        if (_orderStatusId == OrderStatus.AwaitingValidation.Id)
-        {
-            AddDomainEvent(new OrderStatusChangedToStockConfirmedDomainEvent(Id));
+    //public void SetStockConfirmedStatus()
+    //{
+    //    if (_orderStatusId == OrderStatus.AwaitingStockValidation.Id)
+    //    {
+    //        AddDomainEvent(new OrderStatusChangedToStockConfirmedDomainEvent(Id));
 
-            _orderStatusId = OrderStatus.StockConfirmed.Id;
+    //        _orderStatusId = OrderStatus.Validated.Id;
+    //        _description = "All the items were confirmed with available stock.";
+    //    }
+    //}
+
+    public void ProcessStockConfirmed()
+    {
+        DiscountCode = "DISC-30";
+        // If there's no Coupon, then it's validated
+        if (DiscountCode == null)
+        {
+            if (_orderStatusId != OrderStatus.AwaitingStockValidation.Id)
+            {
+                StatusChangeException(OrderStatus.Validated);
+            }
+
+            _orderStatusId = OrderStatus.Validated.Id;
             _description = "All the items were confirmed with available stock.";
+
+            AddDomainEvent(new OrderStatusChangedToValidatedDomainEvent(Id));
         }
+        else
+        {
+            if (_orderStatusId != OrderStatus.AwaitingStockValidation.Id)
+            {
+                StatusChangeException(OrderStatus.AwaitingCouponValidation);
+            }
+
+            _orderStatusId = OrderStatus.AwaitingCouponValidation.Id;
+            _description = "Validate discount code";
+
+            AddDomainEvent(new OrderStatusChangedToAwaitingCouponValidationDomainEvent(Id, DiscountCode));
+        }
+    }
+
+    public void ProcessCouponConfirmed()
+    {
+        if (_orderStatusId != OrderStatus.AwaitingCouponValidation.Id)
+        {
+            StatusChangeException(OrderStatus.Validated);
+        }
+
+        DiscountConfirmed = true;
+
+        _orderStatusId = OrderStatus.Validated.Id;
+        _description = "Discount coupon validated.";
+
+        AddDomainEvent(new OrderStatusChangedToValidatedDomainEvent(Id));
     }
 
     public void SetPaidStatus()
     {
-        if (_orderStatusId == OrderStatus.StockConfirmed.Id)
+        if (_orderStatusId == OrderStatus.Validated.Id)
         {
             AddDomainEvent(new OrderStatusChangedToPaidDomainEvent(Id, OrderItems));
 
@@ -160,7 +224,7 @@ public class Order
 
     public void SetCancelledStatusWhenStockIsRejected(IEnumerable<int> orderStockRejectedItems)
     {
-        if (_orderStatusId == OrderStatus.AwaitingValidation.Id)
+        if (_orderStatusId == OrderStatus.AwaitingStockValidation.Id)
         {
             _orderStatusId = OrderStatus.Cancelled.Id;
 

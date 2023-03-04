@@ -1,3 +1,5 @@
+using Payment.API.IntegrationEvents.EventHandling;
+
 namespace Microsoft.eShopOnContainers.Payment.API;
 
 public class Startup
@@ -136,14 +138,14 @@ public class Startup
             });
         }
 
-        services.AddTransient<OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
+        services.AddTransient<OrderStatusChangedToValidatedIntegrationEventHandler>();
         services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
     }
 
     private void ConfigureEventBus(IApplicationBuilder app)
     {
         var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
-        eventBus.Subscribe<OrderStatusChangedToStockConfirmedIntegrationEvent, OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
+        eventBus.Subscribe<OrderStatusChangedToValidatedIntegrationEvent, OrderStatusChangedToValidatedIntegrationEventHandler>();
     }
 }
 

@@ -1,6 +1,6 @@
 ﻿namespace Coupon.API
 {
-    public class CouponSettings
+    public class Settings
     {
         public string ConnectionString { get; set; }
 

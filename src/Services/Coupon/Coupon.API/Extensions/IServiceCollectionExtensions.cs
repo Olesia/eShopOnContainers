@@ -5,6 +5,7 @@
     using System.IdentityModel.Tokens.Jwt;
     using Autofac;
     using Coupon.API.Dtos;
+    using Coupon.API.Dtos.LoyaltyInfo;
     using Coupon.API.Filters;
     using Coupon.API.Infrastructure.Models;
     using Coupon.API.Infrastructure.Repositories;
@@ -53,7 +54,11 @@
                 })
                 .AddTransient<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>()
                 .AddTransient<CouponContext>()
-                .AddTransient<IMapper<CouponDto, Coupon>, Mapper>();
+                .AddTransient<IMapper<CouponDto, Coupon>, CouponMapper>()
+
+                .AddTransient<ILoyaltyInfoRepository, LoyaltyInfoRepository>()
+                .AddTransient<LoyaltyInfoContext>()
+                .AddTransient<IMapper<LoyaltyInfoDto, LoyaltyInfo>, LoyaltyInfoMapper>();
 
             return services;
         }
@@ -94,7 +99,7 @@
 
         public static IServiceCollection AddCustomSettings(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<CouponSettings>(configuration);
+            services.Configure<Settings>(configuration);
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = context =>
@@ -177,11 +182,11 @@
                     tags: new string[] { "servicebus" });
             }
             else
-            { 
-                //hcBuilder.AddRabbitMQ(
-                //    $"amqp://{configuration["EventBusConnection"]}",
-                //    name: "coupon-rabbitmqbus-check",
-                //    tags: new string[] { "rabbitmqbus" });
+            {
+                hcBuilder.AddRabbitMQ(
+                    $"amqp://{configuration["EventBusConnection"]}",
+                    name: "coupon-rabbitmqbus-check",
+                    tags: new string[] { "rabbitmqbus" });
             }
 
             return services;

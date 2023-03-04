@@ -1,11 +1,11 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.Events;
 
-public record OrderStatusChangedToAwaitingValidationIntegrationEvent : IntegrationEvent
+public record OrderStatusChangedToAwaitingStockValidationIntegrationEvent : IntegrationEvent
 {
     public int OrderId { get; }
     public IEnumerable<OrderStockItem> OrderStockItems { get; }
 
-    public OrderStatusChangedToAwaitingValidationIntegrationEvent(int orderId,
+    public OrderStatusChangedToAwaitingStockValidationIntegrationEvent(int orderId,
         IEnumerable<OrderStockItem> orderStockItems)
     {
         OrderId = orderId;

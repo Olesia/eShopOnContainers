@@ -1,11 +1,11 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 
 // Regular CommandHandler
-public class SetAwaitingValidationOrderStatusCommandHandler : IRequestHandler<SetAwaitingValidationOrderStatusCommand, bool>
+public class SetAwaitingStockValidationOrderStatusCommandHandler : IRequestHandler<SetAwaitingStockValidationOrderStatusCommand, bool>
 {
     private readonly IOrderRepository _orderRepository;
 
-    public SetAwaitingValidationOrderStatusCommandHandler(IOrderRepository orderRepository)
+    public SetAwaitingStockValidationOrderStatusCommandHandler(IOrderRepository orderRepository)
     {
         _orderRepository = orderRepository;
     }
@@ -16,7 +16,7 @@ public class SetAwaitingValidationOrderStatusCommandHandler : IRequestHandler<Se
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
-    public async Task<bool> Handle(SetAwaitingValidationOrderStatusCommand command, CancellationToken cancellationToken)
+    public async Task<bool> Handle(SetAwaitingStockValidationOrderStatusCommand command, CancellationToken cancellationToken)
     {
         var orderToUpdate = await _orderRepository.GetAsync(command.OrderNumber);
         if (orderToUpdate == null)
@@ -24,19 +24,19 @@ public class SetAwaitingValidationOrderStatusCommandHandler : IRequestHandler<Se
             return false;
         }
 
-        orderToUpdate.SetAwaitingValidationStatus();
+        orderToUpdate.SetAwaitingStockValidationStatus();
         return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
     }
 }
 
 
 // Use for Idempotency in Command process
-public class SetAwaitingValidationIdentifiedOrderStatusCommandHandler : IdentifiedCommandHandler<SetAwaitingValidationOrderStatusCommand, bool>
+public class SetAwaitingValidationIdentifiedOrderStatusCommandHandler : IdentifiedCommandHandler<SetAwaitingStockValidationOrderStatusCommand, bool>
 {
     public SetAwaitingValidationIdentifiedOrderStatusCommandHandler(
         IMediator mediator,
         IRequestManager requestManager,
-        ILogger<IdentifiedCommandHandler<SetAwaitingValidationOrderStatusCommand, bool>> logger)
+        ILogger<IdentifiedCommandHandler<SetAwaitingStockValidationOrderStatusCommand, bool>> logger)
         : base(mediator, requestManager, logger)
     {
     }
