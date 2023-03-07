@@ -31,6 +31,7 @@ public class Order
     
     public int PointsUsed { get; private set; }
 
+    public bool IsPayWithPointsApproved { get; private set; }
 
     // Draft orders have this set to true. Currently we don't check anywhere the draft status of an Order, but we could do it if needed
     private bool _isDraft;
@@ -58,7 +59,7 @@ public class Order
     }
 
     public Order(string userId, string userName, Address address, int cardTypeId, string cardNumber, string cardSecurityNumber,
-            string cardHolderName, DateTime cardExpiration, string discountCode, decimal? discount, int pointsEarned = 0, int pointsUsed = 0, int? buyerId = null, int? paymentMethodId = null) : this()
+            string cardHolderName, DateTime cardExpiration, string discountCode, decimal? discount, int pointsEarned = 0, int pointsUsed = 0, bool isPayWithPointsApproved = true, int? buyerId = null, int? paymentMethodId = null) : this()
     {
         _buyerId = buyerId;
         _paymentMethodId = paymentMethodId;
@@ -69,6 +70,7 @@ public class Order
         Discount = discountCode == null ? null : discount;
         PointsEarned = pointsEarned;
         PointsUsed = pointsUsed;
+        IsPayWithPointsApproved = isPayWithPointsApproved;
 
         // Add the OrderStarterDomainEvent to the domain events collection 
         // to be raised/dispatched when comitting changes into the Database [ After DbContext.SaveChanges() ]
@@ -119,7 +121,10 @@ public class Order
     {
         PointsEarned = points;
     }
-
+    public void SetPointsUsed(int points)
+    {
+        PointsUsed = points;
+    }
 
     public void SetAwaitingStockValidationStatus()
     {
@@ -143,7 +148,6 @@ public class Order
 
     public void ProcessStockConfirmed()
     {
-        DiscountCode = "DISC-30";
         // If there's no Coupon, then it's validated
         if (DiscountCode == null)
         {

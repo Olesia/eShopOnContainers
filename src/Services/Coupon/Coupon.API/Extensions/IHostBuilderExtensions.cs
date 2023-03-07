@@ -42,6 +42,7 @@ namespace Coupon.API.Extensions
 
                 eventBus.Subscribe<OrderStatusChangedToAwaitingCouponValidationIntegrationEvent, OrderStatusChangedToAwaitingCouponValidationIntegrationEventHandler>();
                 eventBus.Subscribe<OrderPaymentSucceededIntegrationEvent, OrderPaymentSucceededIntegrationEventHandler>();
+                eventBus.Subscribe<OrderPayWithPointsApprovedIntegrationEvent, OrderPayWithPointsApprovedIntegrationEventHandler>();
 
             }
 

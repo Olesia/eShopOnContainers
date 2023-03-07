@@ -4,9 +4,10 @@ namespace Coupon.API.Infrastructure.Repositories
 {
     public interface ILoyaltyInfoRepository
     {
-        Task<int?> GetPointsAsync(int byerId);
+        Task<int?> GetPointsAvailableAsync(int byerId);
+        Task<int?> GetPointsTotalCollectedAsync(int byerId);
 
-        Task<int> IncreasePointsBySpentAmountAsync(int buyerId, decimal amount);
-        Task DecreasePointsBySpentAmountAsync(int buyerId, decimal amount);
+        Task IncreasePointsAsync(int buyerId, int points);
+        Task DecreasePointsAsync(int buyerId, int points);
     }
 }

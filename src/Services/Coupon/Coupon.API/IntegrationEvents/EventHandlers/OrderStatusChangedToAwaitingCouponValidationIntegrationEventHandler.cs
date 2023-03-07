@@ -41,7 +41,7 @@ namespace Coupon.API.IntegrationEvents.EventHandlers
 
             Log.Information("----- Coupon \"{CouponCode}\": {@Coupon}", integrationEvent.Code, coupon);
 
-            if (coupon == null ) //|| coupon.Consumed)
+            if (coupon == null || coupon.Consumed)
             {
                 return new OrderCouponRejectedIntegrationEvent(integrationEvent.OrderId, coupon.Code);
             }

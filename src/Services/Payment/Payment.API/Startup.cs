@@ -1,4 +1,5 @@
 using Payment.API.IntegrationEvents.EventHandling;
+using Payment.API.IntegrationEvents.Events;
 
 namespace Microsoft.eShopOnContainers.Payment.API;
 
@@ -139,6 +140,7 @@ public class Startup
         }
 
         services.AddTransient<OrderStatusChangedToValidatedIntegrationEventHandler>();
+        services.AddTransient<OrderLoyaltyPointsSubstructedIntegrationEventHandler>();
         services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
     }
 
@@ -146,6 +148,7 @@ public class Startup
     {
         var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
         eventBus.Subscribe<OrderStatusChangedToValidatedIntegrationEvent, OrderStatusChangedToValidatedIntegrationEventHandler>();
+        eventBus.Subscribe<OrderLoyaltyPointsSubstructedIntegrationEvent, OrderLoyaltyPointsSubstructedIntegrationEventHandler>();
     }
 }
 

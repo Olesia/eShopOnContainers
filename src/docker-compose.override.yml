@@ -240,6 +240,7 @@ services:
       - urls__grpcCatalog=http://catalog-api:81
       - urls__grpcOrdering=http://ordering-api:81
       - CatalogUrlHC=http://catalog-api/hc
+      - CouponUrlHC=http://coupon-api/hc
       - OrderingUrlHC=http://ordering-api/hc
       - IdentityUrlHC=http://identity-api/hc
       - BasketUrlHC=http://basket-api/hc

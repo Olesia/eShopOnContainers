@@ -8,31 +8,32 @@ using System.Threading.Tasks;
 
 namespace Coupon.API.IntegrationEvents.EventHandlers
 {
-    public class OrderPaymentSucceededIntegrationEventHandler : IIntegrationEventHandler<OrderPaymentSucceededIntegrationEvent>
+    public class OrderPayWithPointsApprovedIntegrationEventHandler :
+        IIntegrationEventHandler<OrderPayWithPointsApprovedIntegrationEvent>
     {
         private readonly ILoyaltyInfoRepository _loyaltyRepository;
         private readonly IEventBus _eventBus;
 
-        public OrderPaymentSucceededIntegrationEventHandler(ILoyaltyInfoRepository loyaltyRepository, IEventBus eventBus)
+        public OrderPayWithPointsApprovedIntegrationEventHandler(ILoyaltyInfoRepository loyaltyRepository, IEventBus eventBus)
         {
             _loyaltyRepository = loyaltyRepository;
             _eventBus = eventBus;
         }
 
-        public async Task Handle(OrderPaymentSucceededIntegrationEvent @event)
+        public async Task Handle(OrderPayWithPointsApprovedIntegrationEvent @event)
         {
             await Task.Delay(3000);
 
             using (LogContext.PushProperty("IntegrationEventContext", $"{@event.Id}-Loyalty.API"))
             {
+                var pointsAvailable = await _loyaltyRepository.GetPointsAvailableAsync(@event.BuyerId);
                 Log.Information("----- Handling integration event: {IntegrationEventId} at {AppName} - ({@IntegrationEvent})", @event.Id, "Coupon.API", @event);
-                var totalCollectedPoints = await _loyaltyRepository.GetPointsTotalCollectedAsync(@event.BuyerId);
+                var points = PointCalculator.CalculatePointsToPay(pointsAvailable ?? 0, @event.Total);
                 
-                var points = PointCalculator.CalculatePointsToAccumulate(totalCollectedPoints, @event.Total);
-                await _loyaltyRepository.IncreasePointsAsync(@event.BuyerId, points);
+                await _loyaltyRepository.DecreasePointsAsync(@event.BuyerId, points);
 
                 Log.Information("----- Publishing integration event: {IntegrationEventId} from {AppName} - ({@IntegrationEvent})", @event.Id, "Coupon.API", @event);
-                var integrationEvent = new OrderLoyaltyPointsAddedIntegrationEvent(@event.OrderId, points);
+                var integrationEvent = new OrderLoyaltyPointsSubstructedIntegrationEvent(@event.OrderId, @event.BuyerId, @event.Total, points);
                 _eventBus.Publish(integrationEvent);
             }
         }

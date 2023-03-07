@@ -8,26 +8,26 @@
     using Serilog.Context;
     using System.Threading.Tasks;
 
-    public class OrderStatusChangedToValidatedIntegrationEventHandler :
-        IIntegrationEventHandler<OrderStatusChangedToValidatedIntegrationEvent>
+    public class OrderLoyaltyPointsSubstructedIntegrationEventHandler : IIntegrationEventHandler<OrderLoyaltyPointsSubstructedIntegrationEvent>
     {
         private readonly IEventBus _eventBus;
         private readonly PaymentSettings _settings;
         private readonly ILogger<OrderStatusChangedToValidatedIntegrationEventHandler> _logger;
 
-        public OrderStatusChangedToValidatedIntegrationEventHandler(
+        public OrderLoyaltyPointsSubstructedIntegrationEventHandler(
             IEventBus eventBus,
             IOptionsSnapshot<PaymentSettings> settings,
             ILogger<OrderStatusChangedToValidatedIntegrationEventHandler> logger)
         {
             _eventBus = eventBus;
             _settings = settings.Value;
-            _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+            _logger = logger;
+
 
             _logger.LogTrace("PaymentSettings: {@PaymentSettings}", _settings);
         }
 
-        public async Task Handle(OrderStatusChangedToValidatedIntegrationEvent @event)
+        public async Task Handle(OrderLoyaltyPointsSubstructedIntegrationEvent @event)
         {
             using (LogContext.PushProperty("IntegrationEventContext", $"{@event.Id}-{Program.AppName}"))
             {
@@ -42,39 +42,22 @@
                 // The payment can be successful or it can fail
 
                 await Task.Delay(3000); // Checking with the bank 😉
-                
-                if (@event.IsPayWithPointsApproved == true)
+
+                if (_settings.PaymentSucceeded && (!_settings.MaxOrderTotal.HasValue || @event.Total < _settings.MaxOrderTotal))
                 {
-                    orderPaymentIntegrationEvent = new OrderPayWithPointsApprovedIntegrationEvent(@event.OrderId, @event.BuyerId, @event.Total);
+                    orderPaymentIntegrationEvent = new OrderPaymentSucceededIntegrationEvent(@event.OrderId, @event.BuyerId, @event.Total);
                 }
                 else
                 {
-                    if (_settings.PaymentSucceeded && (!_settings.MaxOrderTotal.HasValue || @event.Total < _settings.MaxOrderTotal))
-                    {
-                        orderPaymentIntegrationEvent = new OrderPaymentSucceededIntegrationEvent(@event.OrderId, @event.BuyerId, @event.Total);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("----- Payment for ${Total} rejected for order {OrderId} because of service configuration", @event.Total, @event.OrderId);
+                    _logger.LogWarning("----- Payment for ${Total} rejected for order {OrderId} because of service configuration", @event.Total, @event.OrderId);
 
-                        orderPaymentIntegrationEvent = new OrderPaymentFailedIntegrationEvent(@event.OrderId);
-                    }
+                    orderPaymentIntegrationEvent = new OrderPaymentFailedIntegrationEvent(@event.OrderId);
                 }
-                    //if (_settings.PaymentSucceeded && (!_settings.MaxOrderTotal.HasValue || @event.Total < _settings.MaxOrderTotal))
-                    //{
-                    //    orderPaymentIntegrationEvent = new OrderPaymentSucceededIntegrationEvent(@event.OrderId, @event.BuyerId, @event.Total);
-                    //}
-                    //else
-                    //{
-                    //    _logger.LogWarning("----- Payment for ${Total} rejected for order {OrderId} because of service configuration", @event.Total, @event.OrderId);
-
-                    //    orderPaymentIntegrationEvent = new OrderPaymentFailedIntegrationEvent(@event.OrderId);
-                    //}
 
                 _logger.LogInformation("----- Publishing integration event: {IntegrationEventId} from {AppName} - ({@IntegrationEvent})", orderPaymentIntegrationEvent.Id, Program.AppName, orderPaymentIntegrationEvent);
                 _eventBus.Publish(orderPaymentIntegrationEvent);
 
-                //await Task.CompletedTask;
+                await Task.CompletedTask;
             }
         }
     }

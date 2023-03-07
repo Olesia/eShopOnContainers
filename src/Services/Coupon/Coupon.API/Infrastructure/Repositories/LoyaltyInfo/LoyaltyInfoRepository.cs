@@ -7,43 +7,43 @@ namespace Coupon.API.Infrastructure.Repositories
     public class LoyaltyInfoRepository : ILoyaltyInfoRepository
     {
         private readonly LoyaltyInfoContext _loyaltyContext;
-        private const decimal loyaltyPercentage = (decimal)0.1;
 
         public LoyaltyInfoRepository(LoyaltyInfoContext pointContext)
         {
             _loyaltyContext = pointContext;
         }
 
-        public async Task<int?> GetPointsAsync(int buyerId)
+        public async Task<int?> GetPointsAvailableAsync(int buyerId)
         {
             var filter = Builders<LoyaltyInfo>.Filter.Eq("BuyerId", buyerId);
             var loyalty = await _loyaltyContext.LoyaltyInfo.Find(filter).FirstOrDefaultAsync();
-            return loyalty?.Points;
+            return loyalty?.PointsAvailable;
         }
 
-        public async Task<int> IncreasePointsBySpentAmountAsync(int buyerId, decimal amount)
+        public async Task<int?> GetPointsTotalCollectedAsync(int buyerId)
         {
             var filter = Builders<LoyaltyInfo>.Filter.Eq("BuyerId", buyerId);
-            var points = RoundPoints(amount);
+            var loyalty = await _loyaltyContext.LoyaltyInfo.Find(filter).FirstOrDefaultAsync();
+            return loyalty?.PointsTotalCollected;
+        }
+
+        public async Task IncreasePointsAsync(int buyerId, int points)
+        {
+            var filter = Builders<LoyaltyInfo>.Filter.Eq("BuyerId", buyerId);
             var update = Builders<LoyaltyInfo>.Update
-                        .Inc(loyalty => loyalty.Points, points);
+                        .Inc(loyalty => loyalty.PointsAvailable, points)
+                        .Inc(loyalty => loyalty.PointsTotalCollected, points);
 
             await _loyaltyContext.LoyaltyInfo.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
-            return points;
         }
 
-        public async Task DecreasePointsBySpentAmountAsync(int buyerId, decimal amount)
+        public async Task DecreasePointsAsync(int buyerId, int points)
         {
             var filter = Builders<LoyaltyInfo>.Filter.Eq("BuyerId", buyerId);
             var update = Builders<LoyaltyInfo>.Update
-                        .Inc(loyalty => loyalty.Points, - RoundPoints(amount));
+                        .Inc(loyalty => loyalty.PointsAvailable, -points);
 
             await _loyaltyContext.LoyaltyInfo.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = false });
-        }
-
-        public int RoundPoints(decimal amount)
-        {
-            return (int)(amount *loyaltyPercentage);
         }
     }
 }

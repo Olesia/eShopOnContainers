@@ -112,7 +112,7 @@ public class Startup
         eventBus.Subscribe<OrderCouponRejectedIntegrationEvent, IIntegrationEventHandler<OrderCouponRejectedIntegrationEvent>>();
         eventBus.Subscribe<OrderCouponConfirmedIntegrationEvent, IIntegrationEventHandler<OrderCouponConfirmedIntegrationEvent>>();
         eventBus.Subscribe<OrderLoyaltyPointsAddedIntegrationEvent, IIntegrationEventHandler<OrderLoyaltyPointsAddedIntegrationEvent>>();
-
+        eventBus.Subscribe<OrderLoyaltyPointsSubstructedIntegrationEvent, IIntegrationEventHandler<OrderLoyaltyPointsSubstructedIntegrationEvent>>();
     }
 
     protected virtual void ConfigureAuth(IApplicationBuilder app)

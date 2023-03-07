@@ -41,7 +41,7 @@
             var order = await _orderRepository.GetAsync(domainEvent.OrderId);
             var buyer = await _buyerRepository.FindByIdAsync(order.GetBuyerId.Value.ToString());
 
-            var integrationEvent = new OrderStatusChangedToValidatedIntegrationEvent(order.Id, order.OrderStatus.Name, buyer.Id, buyer.Name, order.GetTotal());
+            var integrationEvent = new OrderStatusChangedToValidatedIntegrationEvent(order.Id, order.OrderStatus.Name, buyer.Id, buyer.Name, order.IsPayWithPointsApproved, order.GetTotal());
             await _orderingIntegrationEventService.AddAndSaveEventAsync(integrationEvent);
         }
     }

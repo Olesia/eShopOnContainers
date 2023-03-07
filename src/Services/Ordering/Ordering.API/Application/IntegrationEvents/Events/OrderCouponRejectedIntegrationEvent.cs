@@ -4,10 +4,13 @@ namespace Ordering.API.Application.IntegrationEvents.Events
 {
     public record OrderCouponRejectedIntegrationEvent : IntegrationEvent
     {
-        [JsonProperty]
-        public int OrderId { get; private set; }
+        public int OrderId { get; }
 
-        [JsonProperty]
-        public string Code { get; private set; }
+        public string Code { get; }
+        public OrderCouponRejectedIntegrationEvent(int orderId, string code)
+        {
+            OrderId = orderId;
+            Code = code;
+        }
     }
 }

@@ -40,6 +40,7 @@ namespace Coupon.API
             services.AddTransient<IIntegrationEventHandler<OrderStatusChangedToCancelledIntegrationEvent>, OrderStatusChangedToCancelledIntegrationEventHandler>();
         
             services.AddTransient<IIntegrationEventHandler<OrderPaymentSucceededIntegrationEvent>, OrderPaymentSucceededIntegrationEventHandler>();
+            services.AddTransient<IIntegrationEventHandler<OrderPayWithPointsApprovedIntegrationEvent>, OrderPayWithPointsApprovedIntegrationEventHandler>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -93,6 +94,7 @@ namespace Coupon.API
             eventBus.Subscribe<OrderStatusChangedToCancelledIntegrationEvent, IIntegrationEventHandler<OrderStatusChangedToCancelledIntegrationEvent>>();
 
             eventBus.Subscribe<OrderPaymentSucceededIntegrationEvent, IIntegrationEventHandler<OrderPaymentSucceededIntegrationEvent>>();
+            eventBus.Subscribe<OrderPayWithPointsApprovedIntegrationEvent, IIntegrationEventHandler<OrderPayWithPointsApprovedIntegrationEvent>>();
 
         }
     }

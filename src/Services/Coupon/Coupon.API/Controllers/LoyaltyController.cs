@@ -29,7 +29,7 @@ namespace Coupon.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<int>> GetLoyaltyPointsByBuyerAsync(int buyerId)
         {
-            var points = await _loyaltyInfoRepository.GetPointsAsync(buyerId);
+            var points = await _loyaltyInfoRepository.GetPointsAvailableAsync(buyerId);
             if (points == null)
             {
                 return NotFound();

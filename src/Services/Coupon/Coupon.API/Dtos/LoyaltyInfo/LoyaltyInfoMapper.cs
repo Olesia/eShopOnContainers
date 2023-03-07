@@ -9,7 +9,8 @@
             return new LoyaltyInfoDto
             {
                 BuyerId = entity.BuyerId,
-                Points = entity.Points
+                PointsAvailable = entity.PointsAvailable,
+                PointsTotalCollected = entity.PointsTotalCollected
             };
         }
     }
